@@ -21,7 +21,7 @@ api/binance_api.php
 ```
 For launch bot type in adress bar `http://127.0.0.1/products/smartbot`
 
-The bot trades by pricebased on RSI.
+The bot trades by prices based on RSI.
 
 # [RU] SMARTBOT
 

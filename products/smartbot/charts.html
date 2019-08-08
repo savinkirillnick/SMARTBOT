@@ -1,0 +1,89 @@
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-47078483-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-47078483-4');
+</script>
+<title>
+CHART-BOT v0.1 u.1
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="Bitcoin CHART-Bot" />
+<meta property="keywords" content="" />
+<meta property="og:description" content="Bitcoin CHART-Bot" />
+<meta property="og:image" content="http://funnymay.com/images/thumb.jpg" />
+<meta property="og:title" content="CHART-BOT v0.1" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://funnymay.com/" />
+  <style type="text/css">
+   body {
+    font-family: sans-serif;
+    background-color: #131722;
+    color: #c0c1c2;
+    padding: 0;
+    margin: 0;
+   }
+   input, select {
+    background-color: #1c202d;
+    border: 1px solid #2f3241;
+    color: #c5cbce;
+   }
+   b {
+    color: #3bb3e4;
+   }
+   td, div {
+    font-family: inherit;
+    font-size: 14px;
+   }
+   #charts {
+   width: 100%;
+   height: 100%;
+   }
+  </style>
+</head>
+<script type="text/javascript" >
+function initCharts() {
+
+var hor = top.document.tab.h.value;
+var ver = top.document.tab.v.value;
+var count = hor*ver;
+var innerText = "<table cellpadding='0' cellspacing='0' border='0' width='100%' height='100%'>";
+
+var wid = 100/hor;
+var hei = 100/ver;
+var url = "https://s.tradingview.com/widgetembed/?symbol=WEX%3ABTCUSD&interval=30&whitelabel=1&symboledit=1&saveimage=1&toolbarbg=131722&studies=MASimple%40tv-basicstudies&hideideas=1&theme=Dark&style=1&timezone=Europe%2FLondon&withdateranges=1&studies_overrides=%7B%7D&overrides=%7B%7D&enabled_features=%5B%5D&disabled_features=%5B%5D&locale=en&utm_source=wex.nz&utm_medium=widget&utm_campaign=chart&utm_term=WEX%3ABTCUSD";
+
+for (var i=0;i<ver;i++) {
+	innerText += "<tr>";
+
+	for (var j=0;j<hor;j++) {
+		innerText += "<td width='"+wid+"%' height='"+hei+"%'><iframe src='"+url+"' width='100%' height='100%' align='left' frameBorder='0' scrolling='no'>Forget about chart!</iframe></td>";
+	}
+	innerText += "</tr>"
+}
+innerText += "</table>";
+document.getElementById('charts').innerHTML = innerText;
+
+}
+</script>
+<body>
+<div id='charts'>
+<table width='100%' height='100%'>
+<tr>
+<td width='100%' height='100%' align='center' valign='middle'>
+<form name='tab'>
+Cols <input type='number' name='h' value='2' style='width:30px;'><br>
+Rows <input type='number' name='v' value='2' style='width:30px;'><br><br>
+<input type='button' name='initButton' value='Create' onClick='initCharts();'>
+</form>
+</td>
+</tr>
+</table>
+</div>
+</body>
+</html>

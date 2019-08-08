@@ -1,0 +1,432 @@
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-47078483-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-47078483-4');
+</script>
+<title>
+Binance SMART-BOT v0.1 u.1
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="Bitcoin binance.com SMART-BOT" />
+<meta property="keywords" content="" />
+<meta property="og:description" content="Bitcoin binance.com SMART-BOT" />
+<meta property="og:image" content="http://funnymay.com/images/thumb.jpg" />
+<meta property="og:title" content="Binance SMART-BOT v0.1" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://funnymay.com/" />
+  <style type="text/css">
+   body {
+    font-family: sans-serif;
+    background-color: #ffffff;
+    color: #333537;
+   }
+   input, select {
+    background-color: #ffffff;
+    border: 1px solid #e7e8e9;
+    color: #333537;
+   }
+   b {
+    color: #3bb3e4;
+   }
+   td, div {
+    font-family: inherit;
+    font-size: 14px;
+   }
+   .priceup {
+    color: #53b987;
+   }
+   .pricedown {
+    color: #eb4d5c;
+   }
+   .pricenotchanged {
+    color: #c0c1c2;
+   }
+   .tab_cell {
+    color: #353637;
+    width: 80px;
+	padding:2px;
+	text-align: center;
+   }
+   .tab_cell_ask {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	 background-color: #eb4d5c;
+   }
+   .tab_cell_bid {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	background-color: #53b987;
+   }
+  </style>
+</head>
+<script type="text/javascript" src="/js/aes.js"></script>
+<script type="text/javascript" src="/js/xhr.js"></script>
+<script type="text/javascript" src="/js/cookies.js"></script>
+<script type="text/javascript" >
+/*Global Variables*/
+
+//Global Array
+var _g = [];
+
+//hostString for working anywhere
+_g["host"] = window.location.protocol+"//"+window.location.hostname;
+
+//Array of pairs
+_g["pairs"] = [];
+
+//Array of symbols
+_g["symbols"] = [];
+
+//Exchange Rules
+_g["rules"] = [];
+
+//Counter Activity
+_g["iFoo"] = 1;
+
+//Progress Bar
+_g["iProg"] = 0;
+
+/*Global Variables OK*/
+</script>
+<script type="text/javascript" >
+/*Logs*/
+
+function log(str) {
+
+var timeData = new Date;
+
+timeData = "[" + timeData.getFullYear() + "-" +
+("00" + (timeData.getMonth() + 1)).slice(-2) + "-" +
+("00" + timeData.getDate()).slice(-2) +
+"] (" +
+("00" + timeData.getHours()).slice(-2) + ":" +
+("00" + timeData.getMinutes()).slice(-2) + ":" +
+("00" + timeData.getSeconds()).slice(-2) +
+")";
+
+document.getElementById('logs').innerHTML += timeData + " " + str + "<br>";
+}
+
+/*Logs*/
+</script>
+<script type="text/javascript" >
+/*Bar Options*/
+
+function hiddenPop() {
+
+	document.getElementById('run').style.display = 'none';
+	document.getElementById('hide_button').innerHTML = "<span onClick='showPop()' style='cursor: pointer; cursor: hand;'>Show Bar</span>";
+
+}
+
+function showPop() {
+
+	document.getElementById('run').style.display = 'block';
+	document.getElementById('hide_button').innerHTML = "<span onClick='hiddenPop()' style='cursor: pointer; cursor: hand;'>Hide Bar</span>";
+
+}
+
+/*Bar Options OK*/
+</script>
+<script type="text/javascript" >
+/*Settings_START*/
+
+function saveSettings () {
+
+	deleteCookie('binance_set_'+top.document.runBot.botSet.value);
+
+	var date = new Date;
+	date.setDate( date.getDate() + 365 );
+
+	var cookieString = '{"set":"'+top.document.runBot.botSet.value+
+	'","key":"'+top.document.runBot.key.value+
+	'","secret":"'+top.document.runBot.secret.value+
+	'","pair":'+top.document.runBot.pair.selectedIndex+
+	',"exchange":'+top.document.runBot.exchange.selectedIndex+'}';
+
+	var encryptedString = CryptoJS.AES.encrypt(cookieString, top.document.runBot.password.value);
+	setCookie('binance_set_'+top.document.runBot.botSet.value, encryptedString.toString(), { expires: date.toUTCString() });
+	log("Settings Set_"+top.document.runBot.botSet.value+" saved.");
+}
+
+function loadSettings () {
+
+	var settingsString = getCookie('binance_set_'+top.document.runBot.botSet.value);
+	var decryptedString = CryptoJS.AES.decrypt(settingsString, top.document.runBot.password.value);
+
+	if (decryptedString != ""){
+		var brokenString = JSON.parse(decryptedString.toString(CryptoJS.enc.Utf8));
+
+		top.document.runBot.key.value = brokenString.key;
+		top.document.runBot.secret.value = brokenString.secret;
+		top.document.runBot.pair.selectedIndex = brokenString.pair;
+		top.document.runBot.exchange.selectedIndex = brokenString.exchange;
+	}
+	log("Settings Set_"+top.document.runBot.botSet.value+" loaded.");
+}
+
+/*Settings_END OK*/
+</script>
+<script type="text/javascript" >
+/*Get Exchange Info*/
+
+function getRules() {
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getRules";
+
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+	if(req.status == 200) {
+		_g["rules"] = JSON.parse(req.responseText);
+
+		innerText = "<select name='pair' style='width:80px;' onchange='getChart();'>";
+		var v;
+		var j=0;
+		for (var k in _g["rules"]["pairs"]) {
+			_g["pairs"][j] = k;
+			_g["symbols"][j] = _g["rules"]["pairs"][k]['symbol'];
+			v = k.split('_');
+			innerText += "<option value='"+j+"'>"+v[0].toUpperCase()+"/"+v[1].toUpperCase()+"</option>";
+			j++;
+		}
+		innerText += "</select>";
+		document.getElementById('inner_pairs').innerHTML = innerText;
+	}
+document.getElementById('progress_bar').innerHTML += "r";
+}
+
+/*Get Exchange Info*/
+</script>
+<script type="text/javascript" >
+/*Get Signal*/
+
+function getSignal() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var key = top.document.runBot.key.value;
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getStrategyPrices&key="+key+"&pair="+pair+"&strategy=smart";
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+	  if (req.responseText) {
+
+		var brokenString = JSON.parse(req.responseText);
+		if (brokenString.success) {
+			if (brokenString["signal"] == "buy") {
+				log("BUY <span style='cursor: pointer; cursor: hand;' onClick='getChart("+top.document.runBot.pair.value+");'>"+pair+"</span>");
+			}
+		}
+	  }
+	}
+
+document.getElementById('progress_bar').innerHTML += "s";
+}
+/*Get Signal*/
+</script>
+<script type="text/javascript" >
+/*Get Chart*/
+
+function getChart(pair) {
+
+if (pair) {
+	var symbol = _g["symbols"][pair];
+} else {
+	var symbol = _g["symbols"][top.document.runBot.pair.value];
+}
+var url = "https://ru.tradingview.com/widgetembed/?symbol=BINANCE:"+symbol+"&interval=30&symboledit=1&saveimage=1";
+
+document.getElementById('chart_div').innerHTML = "<iframe src='"+url+"' width='1000' height='500' align='left' frameBorder='0' scrolling='no'>"
++ "Forget about chart!"
++ "</iframe>";
+
+document.getElementById('progress_bar').innerHTML += "v";
+}
+
+/*Get Chart OK*/
+</script>
+<script type="text/javascript" >
+/*Refresh Data*/
+
+function refreshData () {
+
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+var countPairs = top.document.runBot.pair.length-1;
+
+if (key && secret) {
+
+	if ((document.getElementById('progress_bar').innerHTML).length >= 75) {
+		document.getElementById('progress_bar').innerHTML = "Progress: ";
+		_g["iProg"] = 0;
+	}
+
+	if (_g["iFoo"] == 1) {
+		top.document.runBot.pair.selectedIndex++;
+		if (top.document.runBot.pair.selectedIndex >= countPairs) {
+			console.log(countPairs);
+			top.document.runBot.pair.selectedIndex = 0;
+			document.getElementById('logs').innerHTML = "LOGS:<br>";
+		}
+		getSignal();
+	}
+
+	_g["iProg"]++;
+	_g["iFoo"]++;
+	if (_g["iFoo"] > 1){_g["iFoo"] = 1;}
+}
+}
+
+/*Refresh Data*/
+</script>
+<script type="text/javascript" >
+/*Page Structure*/
+
+function initPage() {
+
+	//Show Bar
+	showPop();
+
+	var msec = 3000;
+
+	setInterval(refreshData, msec);
+
+log("RESEARCH-BOT is ready.");
+}
+
+/*Page Structure*/
+</script>
+<body onload="getRules();">
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100%'>
+
+<center>
+<table cellpadding='0' cellspacing='0' border='0' width='940'>
+<tr>
+<td width='940'>
+
+<form name='runBot' method='get' action='/'>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100' valign='top'>
+<div id='hide_button'>
+</div>
+</td>
+<td width=* height='40'>
+<div id='run'>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100%'>
+<input type='text' name='key' placeholder='API key'>
+<input type='text' name='secret' placeholder='API secret'>
+<select name='exchange' style='width:80px;'>
+  <option value='binance'>Binance</option>
+</select>
+<input type='button' name='initButton' value='Init' onClick='initPage();'>
+</td>
+</tr>
+</table>
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='8%' height='30'>Pair:&nbsp;</td>
+<td width='8%'><div id='inner_pairs'>Loading...</div></td>
+<td width='8%'></td>
+<td width='8%'></td>
+<td width='8%'></td>
+<td width='8%'></td>
+<td width='8%' align='right'><input type='password' name='password' placeholder='Password' style='width:80px;'>
+</td>
+<td width='8%'>
+<input type='button' name='loadBotButton' value='Load Bot Settings' onClick='loadSettings();'>
+</td>
+</tr><tr>
+<td height='30' align='right'></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td align='right'>
+<select name='botSet' style='width:80px;'>
+  <option value='1'>Set: 1</option>
+  <option value='2'>Set: 2</option>
+  <option value='3'>Set: 3</option>
+  <option value='4'>Set: 4</option>
+  <option value='5'>Set: 5</option>
+  <option value='6'>Set: 6</option>
+  <option value='7'>Set: 7</option>
+  <option value='8'>Set: 8</option>
+  <option value='9'>Set: 9</option>
+  <option value='10'>Set: 10</option>
+  <option value='11'>Set: 11</option>
+  <option value='12'>Set: 12</option>
+  <option value='13'>Set: 13</option>
+  <option value='14'>Set: 14</option>
+  <option value='15'>Set: 15</option>
+  <option value='16'>Set: 16</option>
+  <option value='17'>Set: 17</option>
+  <option value='18'>Set: 18</option>
+  <option value='19'>Set: 19</option>
+  <option value='20'>Set: 20</option>
+</select>
+</td>
+<td>
+<input type='button' name='saveBotButton' value='Save Bot Settings' onClick='saveSettings();'>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+</table>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='1000' height='500' valign='top'>
+<div id='chart_div' style='width: 1000px; height: 500px;'>Loading...</div>
+<div id='progress_bar' style='margin-top: 10px;'>Progress: </div>
+<div id='logs'>LOGS:<br>Welcome to RESEARCH-BOT. Loading...<br></div>
+</td>
+</tr>
+</table>
+
+</form>
+
+</td>
+</tr>
+</table>
+
+</center>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>

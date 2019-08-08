@@ -1,0 +1,1048 @@
+<html>
+<head>
+<!-- Global site tag (gtag.js) - Google Analytics -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=UA-47078483-4"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+
+  gtag('config', 'UA-47078483-4');
+</script>
+<title>
+Binance SMART-BOT v0.1 u.1
+</title>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<meta name="description" content="Bitcoin binance.com SMART-BOT" />
+<meta property="keywords" content="" />
+<meta property="og:description" content="Bitcoin binance.com SMART-BOT" />
+<meta property="og:image" content="http://funnymay.com/images/thumb.jpg" />
+<meta property="og:title" content="Binance SMART-BOT v0.1" />
+<meta property="og:type" content="website" />
+<meta property="og:url" content="http://funnymay.com/" />
+  <style type="text/css">
+   body {
+    font-family: sans-serif;
+    background-color: #ffffff;
+    color: #333537;
+   }
+   input, select {
+    background-color: #ffffff;
+    border: 1px solid #e7e8e9;
+    color: #333537;
+   }
+   b {
+    color: #3bb3e4;
+   }
+   td, div {
+    font-family: inherit;
+    font-size: 14px;
+   }
+   .priceup {
+    color: #53b987;
+   }
+   .pricedown {
+    color: #eb4d5c;
+   }
+   .pricenotchanged {
+    color: #c0c1c2;
+   }
+   .tab_cell {
+    color: #353637;
+    width: 80px;
+	padding:2px;
+	text-align: center;
+   }
+   .tab_cell_ask {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	 background-color: #f7c8cd;
+   }
+   .tab_cell_bid {
+    width: 50px;
+	padding:2px;
+	text-align: center;
+	background-color: #cae8d9;
+   }
+  </style>
+</head>
+<script type="text/javascript" src="/js/aes.js"></script>
+<script type="text/javascript" src="/js/xhr.js"></script>
+<script type="text/javascript" src="/js/cookies.js"></script>
+<script type="text/javascript" >
+/*Global Variables*/
+
+//Global Array
+var _g = [];
+
+//hostString for working anywhere
+_g["host"] = window.location.protocol+"//"+window.location.hostname;
+
+//Available deposits of currencies
+_g["balances"] = [];
+
+//Array of pairs
+_g["pairs"] = [];
+
+//Array of symbols
+_g["symbols"] = [];
+
+//Exchange Rules
+_g["rules"] = [];
+
+//Counter Activity
+_g["iFoo"] = 1;
+
+//Progress Bar
+_g["iProg"] = 0;
+
+//Bot Run Conrol
+_g["botIsRun"] = 0;
+
+//Bot Buy Control
+_g["buyControl"] = 0;
+
+//Bot Sell Control
+_g["sellControl"] = 0;
+
+//Price of the best buy-order in order book
+_g["bestBuyPrice"] = 0;
+
+//Price of the best sell-order in order book
+_g["bestSellPrice"] = 0;
+
+//Amount of the best buy-order in order book
+_g["bestBuyQty"] = 0;
+
+//Amount of the best sell-order in order book
+_g["bestSellQty"] = 0;
+
+//Price of last buy-order
+_g["lastBuyPrice"] = 0;
+
+//Price of last sell-order
+_g["lastSellPrice"] = 0;
+
+//Queue of orders to be cancelled
+_g["queueOrders"] = "";
+
+/*Global Variables OK*/
+</script>
+<script type="text/javascript" >
+/*Logs*/
+
+function log(str) {
+
+var timeData = new Date;
+
+timeData = "[" + timeData.getFullYear() + "-" +
+("00" + (timeData.getMonth() + 1)).slice(-2) + "-" +
+("00" + timeData.getDate()).slice(-2) +
+"] (" +
+("00" + timeData.getHours()).slice(-2) + ":" +
+("00" + timeData.getMinutes()).slice(-2) + ":" +
+("00" + timeData.getSeconds()).slice(-2) +
+")";
+
+document.getElementById('logs').innerHTML += timeData + " " + str + "<br>";
+}
+
+/*Logs*/
+</script>
+<script type="text/javascript" >
+/*Bar Options*/
+
+function hiddenPop() {
+
+	document.getElementById('run').style.display = 'none';
+	document.getElementById('hide_button').innerHTML = "<span onClick='showPop()' style='cursor: pointer; cursor: hand;'>Show Bar</span>";
+
+}
+
+function showPop() {
+
+	document.getElementById('run').style.display = 'block';
+	document.getElementById('hide_button').innerHTML = "<span onClick='hiddenPop()' style='cursor: pointer; cursor: hand;'>Hide Bar</span>";
+
+}
+
+/*Bar Options OK*/
+</script>
+<script type="text/javascript" >
+/*Settings_START*/
+
+function saveSettings () {
+
+	deleteCookie('binance_set_'+top.document.runBot.botSet.value);
+
+	var date = new Date;
+	date.setDate( date.getDate() + 365 );
+
+	var cookieString = '{"set":"'+top.document.runBot.botSet.value+
+	'","key":"'+top.document.runBot.key.value+
+	'","secret":"'+top.document.runBot.secret.value+
+	'","pair":'+top.document.runBot.pair.selectedIndex+
+	',"exchange":'+top.document.runBot.exchange.selectedIndex+
+	',"fee":'+top.document.runBot.fee.value+
+	',"stepQty":'+top.document.runBot.stepQty.value+
+	',"orderLife":'+top.document.runBot.orderLife.value+'}';
+
+	var encryptedString = CryptoJS.AES.encrypt(cookieString, top.document.runBot.password.value);
+	setCookie('binance_set_'+top.document.runBot.botSet.value, encryptedString.toString(), { expires: date.toUTCString() });
+	log("Settings Set_"+top.document.runBot.botSet.value+" saved.");
+}
+
+function loadSettings () {
+
+	var settingsString = getCookie('binance_set_'+top.document.runBot.botSet.value);
+	var decryptedString = CryptoJS.AES.decrypt(settingsString, top.document.runBot.password.value);
+
+	if (decryptedString != ""){
+		var brokenString = JSON.parse(decryptedString.toString(CryptoJS.enc.Utf8));
+
+		top.document.runBot.key.value = brokenString.key;
+		top.document.runBot.secret.value = brokenString.secret;
+		top.document.runBot.pair.selectedIndex = brokenString.pair;
+		top.document.runBot.exchange.selectedIndex = brokenString.exchange;
+		top.document.runBot.fee.value = brokenString.fee;
+		top.document.runBot.stepQty.value = brokenString.stepQty;
+		top.document.runBot.orderLife.value = brokenString.orderLife;
+	}
+	log("Settings Set_"+top.document.runBot.botSet.value+" loaded.");
+}
+
+/*Settings_END OK*/
+</script>
+<script type="text/javascript" >
+/*Get Exchange Info*/
+
+function getRules() {
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getRules";
+
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+	if(req.status == 200) {
+		_g["rules"] = JSON.parse(req.responseText);
+		var count = 0;
+		var innerText = "";
+		var tr=0;
+		count = _g["rules"]["coins"].length;
+		innerText = "<table cellpadding='0' cellspacing='0' border='0' width='100%'>";
+
+		for (var i=0;i<count;i++) {
+			if (tr == 0) {innerText += "<tr>";}
+			innerText += "<td width='70' align='right'>"+(_g["rules"]["coins"][i]).toUpperCase()+":&nbsp;</td><td width='100'><div id='inner_"+_g["rules"]["coins"][i]+"'>0.00000000</div></td>";
+			if (tr == 5) {innerText += "</tr>"; tr=0;} else {tr++;}
+		}
+		innerText += "</table>";
+		document.getElementById('inner_balances').innerHTML = innerText;
+
+		innerText = "<select name='pair' style='width:80px;' onchange='getChart();'>";
+		var v;
+		var j=0;
+		for (var k in _g["rules"]["pairs"]) {
+			_g["pairs"][j] = k;
+			_g["symbols"][j] = _g["rules"]["pairs"][k]['symbol'];
+			v = k.split('_');
+			innerText += "<option value='"+j+"'>"+v[0].toUpperCase()+"/"+v[1].toUpperCase()+"</option>";
+			j++;
+		}
+		innerText += "</select>";
+		document.getElementById('inner_pairs').innerHTML = innerText;
+	}
+document.getElementById('progress_bar').innerHTML += "r";
+}
+
+/*Get Exchange Info*/
+</script>
+<script type="text/javascript" >
+/*Get Balance Info*/
+
+function getBalances() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var v = pair.split('_');
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getBalances&key="+key+"&secret="+secret;
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+	if(req.status == 200) {
+
+	var brokenString = JSON.parse(req.responseText);
+
+    	if (brokenString.success == 1) {
+			for (var key in brokenString["funds"]) {
+				if (document.getElementById('inner_'+key)!== null) {
+					_g["balances"][key] = (brokenString["funds"][key]).toFixed(8);
+					document.getElementById('inner_'+key).innerHTML = (brokenString["funds"][key]).toFixed(8);
+				}
+			}
+			document.getElementById('v_a').innerHTML = v[0].toUpperCase() + ": " + (brokenString["funds"][(v[0])]).toFixed(8);
+			document.getElementById('v_b').innerHTML = v[1].toUpperCase() + ": " + (brokenString["funds"][(v[1])]).toFixed(8);
+	    }
+
+	} else {
+		log("There was a problem while using XMLHTTP:\n" + req.statusText);
+	}
+
+document.getElementById('progress_bar').innerHTML += "b";
+}
+
+/*Get Balance Info OK*/
+</script>
+<script type="text/javascript" >
+/* Get Trade History */
+
+function getTrades() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+var since = parseInt(new Date().getTime()/1000)-86400;
+var orderAble = parseInt(new Date().getTime()/1000)-top.document.runBot.orderLife.value*60;
+var v = (pair).split('_');
+var aroundPrice = _g["rules"]["pairs"][pair]["aroundPrice"];
+var aroundQty = _g["rules"]["pairs"][pair]["aroundQty"];
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getTrades&key="+key+"&secret="+secret+"&pair="+pair+"&since="+since;
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+	  if (req.responseText) {
+		var brokenString = JSON.parse(req.responseText);
+		document.getElementById('history').innerHTML = "";
+		if (brokenString.success == 1) {
+			for (var i=0; i< brokenString["trades"].length; i++) {
+				document.getElementById('history').innerHTML = "<div style=\"white-space: nowrap;\">"+brokenString["trades"][i]["type"].toUpperCase()+" "+parseFloat(brokenString["trades"][i]["qty"]).toFixed(aroundQty)+" "+v[0].toUpperCase()+" @ "+parseFloat(brokenString["trades"][i]["price"]).toFixed(aroundPrice)+" "+v[1].toUpperCase()+"</div>" + document.getElementById('history').innerHTML;
+			}
+		}
+	  }
+	}
+document.getElementById('progress_bar').innerHTML += "h";
+}
+
+/* Get Trade History */
+</script>
+<script type="text/javascript" >
+/*Get Order Book*/
+
+function getDepth() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getDepth&depth=5&pair="+pair;
+var aroundPrice = _g["rules"]["pairs"][pair]["aroundPrice"];
+var aroundQty = _g["rules"]["pairs"][pair]["aroundQty"];
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+	  if (req.responseText) {
+
+		_g["bestBuyPrice"] = 0;
+		_g["bestSellPrice"] = 0;
+		_g["bestBuyQty"] = 0;
+		_g["bestSellQty"] = 0;
+		var innerText = "";
+		var brokenString = JSON.parse(req.responseText);
+		if (brokenString.success) {
+
+			for (var i = 0; i < 5; i++) {
+				if (_g["bestBuyPrice"] == 0) {
+					if (brokenString['bids'][i][0] != _g["lastBuyPrice"] && brokenString['bids'][i][1] != _g["lastBuyQty"]) {
+						_g["bestBuyPrice"] = brokenString['bids'][i][0];
+						_g["bestBuyQty"] = brokenString['bids'][i][1];
+					}
+				}
+				if (_g["bestSellPrice"] == 0) {
+					if (brokenString['asks'][i][0] != _g["lastSellPrice"] && brokenString['asks'][i][1] != _g["lastSellQty"]) {
+						_g["bestSellPrice"] = brokenString['asks'][i][0];
+						_g["bestSellQty"] = brokenString['asks'][i][1];
+					}
+				}
+				if (brokenString['asks'][i][0] != null) {
+					document.getElementById('askPrice_'+i).innerHTML = brokenString['asks'][i][0];
+					document.getElementById('askQty_'+i).innerHTML = brokenString['asks'][i][1];
+					document.getElementById('askSum_'+i).innerHTML = (brokenString['asks'][i][0]*brokenString['asks'][i][1]).toFixed(8);
+				} else {
+					document.getElementById('askPrice_'+i).innerHTML = "";
+					document.getElementById('askQty_'+i).innerHTML = "";
+					document.getElementById('askSum_'+i).innerHTML = "";
+				}
+				if (brokenString['bids'][i][0] != null) {
+					document.getElementById('bidPrice_'+i).innerHTML = brokenString['bids'][i][0];
+					document.getElementById('bidQty_'+i).innerHTML = brokenString['bids'][i][1];
+					document.getElementById('bidSum_'+i).innerHTML = (brokenString['bids'][i][0]*brokenString['bids'][i][1]).toFixed(8);
+				} else {
+					document.getElementById('bidPrice_'+i).innerHTML = "";
+					document.getElementById('bidQty_'+i).innerHTML = "";
+					document.getElementById('bidSum_'+i).innerHTML = "";
+				}
+			}
+		}
+	  }
+	}
+document.getElementById('progress_bar').innerHTML += "d";
+}
+
+/*Get Order Book*/
+</script>
+<script type="text/javascript" >
+/*Get Active Orders*/
+
+function getOrders() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var v = pair.split('_');
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+var aroundPrice = _g["rules"]["pairs"][pair]["aroundPrice"];
+var aroundQty = _g["rules"]["pairs"][pair]["aroundQty"];
+var orderLife = top.document.runBot.orderLife.value;
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getOrders&key="+key+"&secret="+secret+"&pair="+pair;
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+	  if (req.responseText) {
+		_g["lastBuyPrice"] = 0;
+		_g["lastSellPrice"] = 0;
+		var brokenString = JSON.parse(req.responseText);
+		var timestampLast = parseInt(new Date().getTime()/1000) - orderLife*60;
+		var timestampCreated;
+		var deltaTime = 0;
+
+		document.getElementById('orders').innerHTML = "";
+		if (brokenString.success) {
+			for (var i = 0; i< brokenString["orders"].length; i++) {
+			  timestampCreated = brokenString["orders"][i]["time"];
+			  deltaTime = timestampCreated - timestampLast;
+			  if (deltaTime < 0 && _g["botIsRun"] == 1) {
+				_g["queueOrders"] = brokenString["orders"][i]["id"];
+			  } else {
+			  	if (brokenString["orders"][i]["type"] == "buy") {
+					document.getElementById('orders').innerHTML += "<div id=\"id"+brokenString["orders"][i]["id"]+"\" style=\"white-space: nowrap;\"><span style=\"color: #53b987; font-weight: bold;\">BUY</span> "+parseFloat(brokenString["orders"][i]["qty"]).toFixed(aroundQty)+" "+v[0].toUpperCase()+" @ "+parseFloat(brokenString["orders"][i]["price"]).toFixed(aroundPrice)+" "+v[1].toUpperCase()+" <b><span onClick=\"cancelOrder("+brokenString["orders"][i]["id"]+")\" style=\"cursor: pointer; cursor: hand;\">×</span></b></div>";
+					_g["lastBuyPrice"] = brokenString["orders"][i]["price"];
+				}
+				if (brokenString["orders"][i]["type"] == "sell") {
+					document.getElementById('orders').innerHTML += "<div id=\"id"+brokenString["orders"][i]["id"]+"\" style=\"white-space: nowrap;\"><span style=\"color: #eb4d5c; font-weight: bold;\">SELL</span> "+parseFloat(brokenString["orders"][i]["qty"]).toFixed(aroundQty)+" "+v[0].toUpperCase()+" @ "+parseFloat(brokenString["orders"][i]["price"]).toFixed(aroundPrice)+" "+v[1].toUpperCase()+" <b><span onClick=\"cancelOrder("+brokenString["orders"][i]["id"]+")\" style=\"cursor: pointer; cursor: hand;\">×</span></b></div>";
+					_g["lastSellPrice"] = brokenString["orders"][i]["price"];
+				}
+			  }
+			}
+		} else {
+			document.getElementById('orders').innerHTML = "";
+		}
+	  }
+    } else {
+    	log("There was a problem while using XMLHTTP:\n" + req.statusText);
+    }
+
+document.getElementById('progress_bar').innerHTML += "o";
+}
+
+/*Get Active Orders OK*/
+</script>
+<script type="text/javascript" >
+/*Get Signal*/
+
+function getSignal() {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var key = top.document.runBot.key.value;
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=getStrategyPrices&key="+key+"&pair="+pair+"&strategy=smart";
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+	  if (req.responseText) {
+		_g["signal"] = "";
+		var brokenString = JSON.parse(req.responseText);
+		if (brokenString.success) {
+			_g["signal"] = brokenString["signal"];
+			document.getElementById('innerSignal').innerHTML = brokenString["signal"].toUpperCase();
+		}
+	  }
+	}
+
+document.getElementById('progress_bar').innerHTML += "s";
+}
+/*Get Signal*/
+</script>
+<script type="text/javascript" >
+/*Order Control*/
+
+function controlOrder(type, price, qty) {
+
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var v = pair.split('_');
+var aroundPrice = _g["rules"]["pairs"][pair]["aroundPrice"];
+var aroundQty = _g["rules"]["pairs"][pair]["aroundQty"];
+
+if (type == "buy") {
+	var amount = parseFloat(_g["balances"][(v[1])]);
+}
+if (type == "sell") {
+	var amount = parseFloat(_g["balances"][(v[0])]);
+}
+var minQty = parseFloat(_g["rules"]["pairs"][pair]["minQty"]);
+var maxQty = parseFloat(_g["rules"]["pairs"][pair]["maxQty"]);
+var minPrice = parseFloat(_g["rules"]["pairs"][pair]["minPrice"]);
+var maxPrice = parseFloat(_g["rules"]["pairs"][pair]["maxPrice"]);
+var minSum = parseFloat(_g["rules"]["pairs"][pair]["minSum"]);
+var maxSum = parseFloat(_g["rules"]["pairs"][pair]["maxSum"]);
+var counter = 0;
+
+	if (minQty > 0) {
+		if (qty >= minQty) {
+			counter++;
+		} else {console.log("ERROR: minQty");}
+	} else {
+		counter++;
+	}
+
+	if (minPrice > 0) {
+		if (price >= minPrice) {
+			counter++;
+		} else {console.log("ERROR: minPrice");}
+	} else {
+		counter++;
+	}
+
+	if (minSum > 0) {
+		if ((price*qty) >= minSum) {
+			counter++;
+		} else {console.log("ERROR: minSum");}
+	} else {
+		counter++;
+	}
+
+	if (maxQty > 0) {
+		if (qty <= maxQty) {
+			counter++;
+		} else {console.log("ERROR: maxQty");}
+	} else {
+		counter++;
+	}
+
+	if (maxPrice > 0) {
+		if (price <= maxPrice) {
+			counter++;
+		} else {console.log("ERROR: maxPrice");}
+	} else {
+		counter++;
+	}
+
+	if (maxSum > 0) {
+		if ((price*qty) <= maxSum) {
+			counter++;
+		} else {console.log("ERROR: maxSum");}
+	} else {
+		counter++;
+	}
+
+	if (qty <= amount) {
+		counter++;
+	}
+
+	if (type == "buy") {
+		if (counter == 7) {
+			_g["buyControl"] = 1;
+		} else {
+			_g["buyControl"] = 0;
+		}
+	}
+	if (type == "sell") {
+		if (counter == 7) {
+			_g["sellControl"] = 1;
+		} else {
+			_g["sellControl"] = 0;
+		}
+	}
+}
+
+/*Order Control OK*/
+</script>
+<script type="text/javascript" >
+/*Cancel Order*/
+
+function cancelOrder(orderId) {
+
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+var pair = _g["pairs"][top.document.runBot.pair.value];
+
+var exchange = top.document.runBot.exchange.value;
+var url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=cancelOrder&key="+key+"&secret="+secret+"&id="+orderId+"&pair="+pair;
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if(req.status == 200) {
+
+		var brokenString = JSON.parse(req.responseText);
+		if (brokenString.success == 1) {
+			log("Order "+orderId+" was cancelled.");
+			document.getElementById('progress_bar').innerHTML += "c";
+			_g["queueOrders"] = "";
+			if (document.getElementById('id'+orderId) !== null) {document.getElementById('id'+orderId).style.display = "none";}
+		}
+	} else {
+		log("There was a problem while using XMLHTTP:\n" + req.statusText);
+	}
+
+}
+
+/*Cancel Order OK*/
+</script>
+<script type="text/javascript" >
+/*SEND ORDER*/
+
+function sendOrder(type, price, qty) {
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+var url;
+var pair = _g["pairs"][top.document.runBot.pair.value];
+var aroundPrice = _g["rules"]["pairs"][pair]["aroundPrice"];
+var aroundQty = _g["rules"]["pairs"][pair]["aroundQty"];
+var v = pair.split('_');
+
+var exchange = top.document.runBot.exchange.value;
+
+if (type && price && qty ) {
+	url = ""+_g["host"]+"/api/"+exchange+"_api.php?method=sendOrder&key="+key+"&secret="+secret+"&pair="+pair+"&type="+type+"&qty="+qty+"&price="+price;
+}
+
+var req = getXMLHTTP();
+    if (!req) {
+        log("Unable to set up the XHR object.");
+        return;
+    }
+
+req.open("GET", url, false);
+req.send();
+
+	if (req.status == 200) {
+	var brokenString = JSON.parse(req.responseText);
+
+		if (brokenString.success == 1) {
+
+		  if (type == "buy") {
+		  log("<span style=\"color: #53b987; font-weight: bold;\">BUY</span> "+qty+" "+v[0].toUpperCase()+" @ "+price+" "+v[1].toUpperCase());
+		  document.getElementById('orders').innerHTML += "<div id=\"id"+brokenString["id"]+"\" style=\"white-space: nowrap;\"><span style=\"color: #53b987; font-weight: bold;\">BUY</span> "+qty+" "+v[0].toUpperCase()+" @ "+price+" "+v[1].toUpperCase()+" <b><span onClick=\"cancelOrder("+brokenString["id"]+")\" style=\"cursor: pointer; cursor: hand;\">×</span></b></div>";
+		  _g["lastBuyPrice"] = price;
+			document.getElementById('progress_bar').innerHTML += "B";
+		  }
+		  if (type == "sell") {
+		  log("<span style=\"color: #eb4d5c; font-weight: bold;\">SELL</span> "+qty+" "+v[0].toUpperCase()+" @ "+price+" "+v[1].toUpperCase());
+		  document.getElementById('orders').innerHTML += "<div id=\"id"+brokenString["id"]+"\" style=\"white-space: nowrap;\"><span style=\"color: #eb4d5c; font-weight: bold;\">SELL</span> "+qty+" "+v[0].toUpperCase()+" @ "+price+" "+v[1].toUpperCase()+" <b><span onClick=\"cancelOrder("+brokenString["id"]+")\" style=\"cursor: pointer; cursor: hand;\">×</span></b></div>";
+		  _g["lastSellPrice"] = price;
+			document.getElementById('progress_bar').innerHTML += "S";
+		  }
+		}
+	} else {
+		log("There was a problem while using XMLHTTP:\n" + req.statusText);
+	}
+
+}
+
+function preSendOrder() {
+	var pair = _g["pairs"][top.document.runBot.pair.value];
+	var aroundPrice = parseInt(_g["rules"]["pairs"][pair]["aroundPrice"]);
+	var aroundQty = parseInt(_g["rules"]["pairs"][pair]["aroundQty"]);
+	var buyQty = parseFloat(top.document.runBot.stepQty.value).toFixed(aroundQty);
+	var sellQty = parseFloat(top.document.runBot.stepQty.value*(100-top.document.runBot.fee.value)/100).toFixed(aroundQty);
+	var buyPrice = parseFloat(document.getElementById('askPrice_0').innerHTML).toFixed(aroundPrice);
+	var sellPrice = parseFloat(document.getElementById('bidPrice_0').innerHTML).toFixed(aroundPrice);
+	//console.log("pair="+pair+" aroundPrice="+aroundPrice+" aroundQty="+aroundQty+" buyQty="+buyQty+" sellQty="+sellQty+" buyPrice="+buyPrice+" sellPrice="+sellPrice);
+	if (_g["botIsRun"] == 1) {
+		if (_g["signal"] == "buy"){
+			controlOrder("buy", buyPrice, buyQty);
+			if (_g["buyControl"] == 1) {
+				sendOrder("buy", buyPrice, buyQty);
+			}
+		}
+		if (_g["signal"] == "sell"){
+			controlOrder("sell", sellPrice, sellQty);
+			if (_g["sellControl"] == 1) {
+				sendOrder("sell", sellPrice, sellQty);
+			}
+		}
+	}
+}
+
+function buyAll() {
+	var pair = _g["pairs"][top.document.runBot.pair.value];
+	var v = pair.split('_');
+	var aroundPrice = parseInt(_g["rules"]["pairs"][pair]["aroundPrice"]);
+	var aroundQty = parseInt(_g["rules"]["pairs"][pair]["aroundQty"]);
+	var buyPrice = parseFloat(document.getElementById('askPrice_0').innerHTML).toFixed(aroundPrice);
+	var buyQty = (parseFloat(_g["balances"][(v[1])])/parseFloat(document.getElementById('askPrice_0').innerHTML)-pow(10,-aroundQty)).toFixed(aroundQty);
+	controlOrder("buy", buyPrice, buyQty);
+		if (_g["buyControl"] == 1) {
+			sendOrder("buy", buyPrice, buyQty);
+		}
+}
+
+function sellAll() {
+	var pair = _g["pairs"][top.document.runBot.pair.value];
+	var v = pair.split('_');
+	var aroundPrice = parseInt(_g["rules"]["pairs"][pair]["aroundPrice"]);
+	var aroundQty = parseInt(_g["rules"]["pairs"][pair]["aroundQty"]);
+	var sellPrice = parseFloat(document.getElementById('bidPrice_0').innerHTML).toFixed(aroundPrice);
+	var sellQty = parseFloat(_g["balances"][(v[0])]).toFixed(aroundQty);
+	controlOrder("sell", sellPrice, sellQty);
+		if (_g["sellControl"] == 1) {
+			sendOrder("sell", sellPrice, sellQty);
+		}
+}
+
+/*SEND ORDER*/
+</script>
+<script type="text/javascript" >
+/*Get Chart*/
+
+function getChart () {
+
+var symbol = _g["symbols"][top.document.runBot.pair.value];
+
+var url = "https://ru.tradingview.com/widgetembed/?symbol=BINANCE:"+symbol+"&interval=30&symboledit=1&saveimage=1";
+
+document.getElementById('chart_div').innerHTML = "<iframe src='"+url+"' width='600' height='400' align='left' frameBorder='0' scrolling='no'>"
++ "Forget about chart!"
++ "</iframe>";
+
+document.getElementById('progress_bar').innerHTML += "v";
+}
+
+/*Get Chart OK*/
+</script>
+<script type="text/javascript" >
+/*Refresh Data*/
+
+function refreshData () {
+
+var key = top.document.runBot.key.value;
+var secret = top.document.runBot.secret.value;
+
+if (key && secret) {
+
+	if ((document.getElementById('progress_bar').innerHTML).length >= 75) {
+		document.getElementById('progress_bar').innerHTML = "Progress: ";
+		_g["iProg"] = 0;
+	}
+
+	if (_g["iFoo"] == 1) {
+		getOrders();
+	}
+
+	if (_g["iFoo"] == 2) {
+		getDepth();
+	}
+
+	if (_g["iFoo"] == 3) {
+		getTrades();
+	}
+
+	if (_g["iFoo"] == 4) {
+		getBalances();
+	}
+
+	if (_g["iFoo"] == 5) {
+		getSignal();
+	}
+
+	if (_g["iFoo"] == 6) {
+		if (_g["queueOrders"]){
+			cancelOrder(_g["queueOrders"]);
+		} else {
+			preSendOrder();
+		}
+	}
+
+	_g["iProg"]++;
+	_g["iFoo"]++;
+	if (_g["iFoo"] > 6){_g["iFoo"] = 1;}
+}
+}
+
+/*Refresh Data*/
+</script>
+<script type="text/javascript" >
+/*Page Structure*/
+
+function initPage() {
+
+	//Show Bar
+	showPop();
+
+	getChart();
+
+	var msec = 3000;
+
+	setInterval(refreshData, msec);
+
+log("SMART-BOT is ready.");
+}
+
+/*Page Structure*/
+</script>
+<script type="text/javascript" >
+/*Run Bot*/
+
+function initBot() {
+
+	if (_g["botIsRun"] != 1){
+		_g["botIsRun"] = 1;
+		top.document.runBot.runBotButton.value = 'Stop Bot';
+		log("SMART-BOT started.");
+	} else {
+		_g["botIsRun"] = 0;
+		top.document.runBot.runBotButton.value = 'Run Bot';
+		log("SMART-BOT stopped.");
+	}
+
+}
+
+/*Run Bot*/
+</script>
+<body onload="getRules();">
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100%'>
+
+<center>
+<table cellpadding='0' cellspacing='0' border='0' width='940'>
+<tr>
+<td width='940'>
+
+<form name='runBot' method='get' action='/'>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100' valign='top'>
+<div id='hide_button'>
+</div>
+</td>
+<td width=* height='40'>
+<div id='run'>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='100%'>
+<input type='text' name='key' placeholder='API key'>
+<input type='text' name='secret' placeholder='API secret'>
+<select name='exchange' style='width:80px;'>
+  <option value='binance'>Binance</option>
+</select>
+<input type='button' name='initButton' value='Init' onClick='initPage();'>
+<input type='button' name='runBotButton' value='Run Bot' onClick='initBot();'>
+</td>
+</tr>
+</table>
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='8%' height='30' align='right'>Pair:&nbsp;
+</td>
+<td width='8%'>
+<div id='inner_pairs'>Loading...</div>
+</td>
+<td width='8%' align='right'>Fee, %&nbsp;
+</td>
+<td width='8%' ><input type='number' step='any' name='fee' placeholder='4' value='0.2' style='width:80px;'>
+</td>
+<td width='8%' align='right'>Step Amount&nbsp;
+</td>
+<td width='8%'><input type='number' step='any' name='stepQty' placeholder='0.001' value='0.001' style='width:80px;'>
+</td>
+<td width='8%' align='right'>Order Life, min&nbsp;
+</td>
+<td width='8%'><input type='number' step='30' name='orderLife' placeholder='180' value='180' style='width:80px;'>
+</td>
+</tr><tr>
+<td height='30'></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td align='right'><input type='password' name='password' placeholder='Password' style='width:80px;'>
+</td>
+<td>
+<input type='button' name='loadBotButton' value='Load Bot Settings' onClick='loadSettings();'>
+</td>
+</tr><tr>
+<td height='30' align='right'></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td align='right'>
+<select name='botSet' style='width:80px;'>
+  <option value='1'>Set: 1</option>
+  <option value='2'>Set: 2</option>
+  <option value='3'>Set: 3</option>
+  <option value='4'>Set: 4</option>
+  <option value='5'>Set: 5</option>
+  <option value='6'>Set: 6</option>
+  <option value='7'>Set: 7</option>
+  <option value='8'>Set: 8</option>
+  <option value='9'>Set: 9</option>
+  <option value='10'>Set: 10</option>
+  <option value='11'>Set: 11</option>
+  <option value='12'>Set: 12</option>
+  <option value='13'>Set: 13</option>
+  <option value='14'>Set: 14</option>
+  <option value='15'>Set: 15</option>
+  <option value='16'>Set: 16</option>
+  <option value='17'>Set: 17</option>
+  <option value='18'>Set: 18</option>
+  <option value='19'>Set: 19</option>
+  <option value='20'>Set: 20</option>
+</select>
+</td>
+<td>
+<input type='button' name='saveBotButton' value='Save Bot Settings' onClick='saveSettings();'>
+</td>
+</tr>
+</table>
+
+<div id='inner_balances'>Loading...</div>
+
+</div>
+</td>
+</tr>
+</table>
+
+<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+<tr>
+<td width='600' height='400' valign='top'>
+
+<div id='chart_div' style='width: 600px; height: 400px;'>Loading...</div>
+<div id='progress_bar' style='margin-top: 10px;'>Progress: </div>
+<div id='logs'>LOGS:<br>Welcome to SMART-BOT. Loading...<br></div>
+</td>
+<td width=* valign='top' align='center'>
+	<table cellpadding='0' cellspacing='0' border='0' width='100%'>
+	<tr><td align='center' width='50%'>Signal:
+	</td><td width='50%'><div id='innerSignal'>Loading...</div>
+	</td></tr>
+	<tr><td align='center'><div id='v_b'>Loading...</div>
+	</td><td><div id='v_a'>Loading...</div>
+	</td></tr>
+	</table>
+	<table cellpadding='10' cellspacing='0' border='0' width='90%'>
+	<tr><td>
+
+		<table width='100%'>
+		<tr><td class='tab_cell' width='33.3333%'>Price</td><td class='tab_cell' width='33.3333%'>Amount</td><td class='tab_cell' width='33.3334%'>Summ</td></tr>
+		<tr><td class='tab_cell' id="askPrice_4">0</td><td class='tab_cell' id="askQty_4">0</td><td class='tab_cell' id="askSum_4">0</td></tr>
+		<tr><td class='tab_cell' id="askPrice_3">0</td><td class='tab_cell' id="askQty_3">0</td><td class='tab_cell' id="askSum_3">0</td></tr>
+		<tr><td class='tab_cell' id="askPrice_2">0</td><td class='tab_cell' id="askQty_2">0</td><td class='tab_cell' id="askSum_2">0</td></tr>
+		<tr><td class='tab_cell' id="askPrice_1">0</td><td class='tab_cell' id="askQty_1">0</td><td class='tab_cell' id="askSum_1">0</td></tr>
+		<tr><td class='tab_cell_ask' id="askPrice_0">0</td><td class='tab_cell_ask' id="askQty_0">0</td><td class='tab_cell_ask' id="askSum_0">0</td></tr>
+		<tr><td class='tab_cell_bid' id="bidPrice_0">0</td><td class='tab_cell_bid' id="bidQty_0">0</td><td class='tab_cell_bid' id="bidSum_0">0</td></tr>
+		<tr><td class='tab_cell' id="bidPrice_1">0</td><td class='tab_cell' id="bidQty_1">0</td><td class='tab_cell' id="bidSum_1">0</td></tr>
+		<tr><td class='tab_cell' id="bidPrice_2">0</td><td class='tab_cell' id="bidQty_2">0</td><td class='tab_cell' id="bidSum_2">0</td></tr>
+		<tr><td class='tab_cell' id="bidPrice_3">0</td><td class='tab_cell' id="bidQty_3">0</td><td class='tab_cell' id="bidSum_3">0</td></tr>
+		<tr><td class='tab_cell' id="bidPrice_4">0</td><td class='tab_cell' id="bidQty_4">0</td><td class='tab_cell' id="bidSum_4">0</td></tr>
+		</table>
+
+	</td></tr>
+	</table>
+	<table cellpadding='10' cellspacing='0' border='0' width='90%'>
+	<tr><td>
+	<input type='button' name='buyButton' value='BUY ALL' onClick='buyAll();' style='width: 95px; height: 30px; background: #53b987; color: #f1f9f5; font-weight: bold;'>
+	</td><td>
+	<input type='button' name='sellButton' value='SELL ALL' onClick='sellAll();' style='width: 95px; height: 30px; background: #eb4d5c; color: #f1f9f5; font-weight: bold;'>
+	</td></tr>
+	</table>
+	<table cellpadding='10' cellspacing='10' border='0' width='100%'>
+	<tr><td>
+	Active Orders:<br>
+	<div id='orders'>Loading...</div>
+	</td></tr>
+	<tr><td>
+	Trade History:<br>
+	<div id='history'>Loading...</div>
+	</td></tr>
+	</table>
+</td>
+</tr>
+</table>
+
+</form>
+
+</td>
+</tr>
+</table>
+
+</center>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
